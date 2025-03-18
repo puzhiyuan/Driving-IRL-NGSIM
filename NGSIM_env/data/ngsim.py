@@ -180,47 +180,47 @@ class vehicle_record():
     assert(len(words) == NUM_COLS)
 
     tz = pytz.timezone(timezone_dict[words[GLB_loc_colidx]])
-    self.veh_ID = np.int(words[GLB_vehID_colidx])
-    #self.frame_ID = np.int(words[GLB_frmID_colidx])
-    self.unixtime = np.int(words[GLB_glbtime_colidx]) 
-    self.time = datetime.datetime.fromtimestamp(np.float(self.unixtime) / 1000, tz)
-    self.x = np.float(words[GLB_locx_colidx])
-    self.y = np.float(words[GLB_locy_colidx])
-    self.lat = np.float(words[GLB_glbx_colidx])
-    self.lon = np.float(words[GLB_glby_colidx])
-    self.len = np.float(words[GLB_vehlen_colidx])
-    self.wid = np.float(words[GLB_vehwid_colidx])
-    self.cls = np.int(words[GLB_vehcls_colidx])
-    self.spd = np.float(words[GLB_vehspd_colidx])
-    self.acc = np.float(words[GLB_vehacc_colidx])
-    self.lane_ID = np.int(words[GLB_laneID_colidx])
-    #self.intersection_ID = np.int(words[GLB_interID_colidx])
-    self.pred_veh_ID = np.int(words[GLB_pred_colidx])
-    self.follow_veh_ID = np.int(words[GLB_follow_colidx])
-    self.shead = np.float(words[GLB_shead_colidx])
-    self.thead = np.float(words[GLB_thead_colidx])
+    self.veh_ID = np.int64(words[GLB_vehID_colidx])
+    #self.frame_ID = np.int64(words[GLB_frmID_colidx])
+    self.unixtime = np.int64(words[GLB_glbtime_colidx]) 
+    self.time = datetime.datetime.fromtimestamp(np.float64(self.unixtime) / 1000, tz)
+    self.x = np.float64(words[GLB_locx_colidx])
+    self.y = np.float64(words[GLB_locy_colidx])
+    self.lat = np.float64(words[GLB_glbx_colidx])
+    self.lon = np.float64(words[GLB_glby_colidx])
+    self.len = np.float64(words[GLB_vehlen_colidx])
+    self.wid = np.float64(words[GLB_vehwid_colidx])
+    self.cls = np.int64(words[GLB_vehcls_colidx])
+    self.spd = np.float64(words[GLB_vehspd_colidx])
+    self.acc = np.float64(words[GLB_vehacc_colidx])
+    self.lane_ID = np.int64(words[GLB_laneID_colidx])
+    #self.intersection_ID = np.int64(words[GLB_interID_colidx])
+    self.pred_veh_ID = np.int64(words[GLB_pred_colidx])
+    self.follow_veh_ID = np.int64(words[GLB_follow_colidx])
+    self.shead = np.float64(words[GLB_shead_colidx])
+    self.thead = np.float64(words[GLB_thead_colidx])
 
   def build_from_processed(self, name, words):
     assert(len(words) == 17)
-    self.ID = np.int(words[0])
-    self.veh_ID = np.int(words[1])
-    self.unixtime = np.int(words[2])
+    self.ID = np.int64(words[0])
+    self.veh_ID = np.int64(words[1])
+    self.unixtime = np.int64(words[2])
     tz = pytz.timezone(timezone_dict[name])
-    self.time = datetime.datetime.fromtimestamp(np.float(self.unixtime) / 1000, tz)
-    self.x = np.float(words[3])
-    self.y = np.float(words[4])
-    self.lat = np.float(words[5])
-    self.lon = np.float(words[6])
-    self.len = np.float(words[7])
-    self.wid = np.float(words[8])
-    self.cls = np.int(words[9])
-    self.spd = np.float(words[10])
-    self.acc = np.float(words[11])
-    self.lane_ID = np.int(words[12])
-    self.pred_veh_ID = np.int(words[13])
-    self.follow_veh_ID = np.int(words[14])
-    self.shead = np.float(words[15])
-    self.thead = np.float(words[16])
+    self.time = datetime.datetime.fromtimestamp(np.float64(self.unixtime) / 1000, tz)
+    self.x = np.float64(words[3])
+    self.y = np.float64(words[4])
+    self.lat = np.float64(words[5])
+    self.lon = np.float64(words[6])
+    self.len = np.float64(words[7])
+    self.wid = np.float64(words[8])
+    self.cls = np.int64(words[9])
+    self.spd = np.float64(words[10])
+    self.acc = np.float64(words[11])
+    self.lane_ID = np.int64(words[12])
+    self.pred_veh_ID = np.int64(words[13])
+    self.follow_veh_ID = np.int64(words[14])
+    self.shead = np.float64(words[15])
+    self.thead = np.float64(words[16])
 
   def __str__(self):
     return ("Vehicle record: {}, vehicle ID: {}, unixtime: {}, time: {}, lane: {}, y: {}, x: {}".format(self.ID, self.veh_ID, self.unixtime, 
@@ -243,8 +243,8 @@ class snapshot():
 
   def build_from_processed(self, words, vr_dict):
     assert(len(words) > 1)
-    self.unixtime = np.int(words[0])
-    self.vr_list = list(map(lambda x: vr_dict[np.int(x)], words[1:]))
+    self.unixtime = np.int64(words[0])
+    self.vr_list = list(map(lambda x: vr_dict[np.int64(x)], words[1:]))
 
   def add_vr(self, vr):
     assert (vr.unixtime == self.unixtime)
@@ -270,8 +270,8 @@ class vehicle():
 
   def build_from_processed(self, words, vr_dict):
     assert(len(words) > 1)
-    self.veh_ID = np.int(words[0])
-    self.vr_list = list(map(lambda x: vr_dict[np.int(x)], words[1:]))
+    self.veh_ID = np.int64(words[0])
+    self.vr_list = list(map(lambda x: vr_dict[np.int64(x)], words[1:]))
 
   def add_vr(self, vr):
     assert (vr.veh_ID == self.veh_ID)
@@ -519,11 +519,11 @@ class monitor_center():
             tmp_l = sm.mesh_storage[i][j]
             detected_lane = tmp_l.intersection(self.detection_record[unixtime][lidar_vr][0])
             if (not detected_lane.is_empty) and detected_lane.length > 0:
-              tmp_portion = np.float(detected_lane.length) / np.float(tmp_l.length)
+              tmp_portion = np.float64(detected_lane.length) / np.float64(tmp_l.length)
               if tmp_portion > GLB_DETECT_TOL:
                 # print (tmp_portion)
                 if i in tmp_dict.keys() and j in tmp_dict[i].keys():
-                    m.mesh_storage[i][j][k][2].append(np.float(len(tmp_dict[i][j][k])))
+                    m.mesh_storage[i][j][k][2].append(np.float64(len(tmp_dict[i][j][k])))
                     spd_list = list(filter(lambda x: x>0, map(lambda x: x.spd + x.spd * np.random.uniform(-1, 1) * self.spd_noise, tmp_dict[i][j][k])))
                     if len(spd_list) > 0:
                       m.mesh_storage[i][j][k][3].append(hmean(np.array(spd_list)))
@@ -608,10 +608,10 @@ class mesh():
     assert(unixtime >= self.min_time and unixtime <= self.max_time)
     assert(y >= self.min_space and y <= self.max_space)
     i = lane_ID
-    j = np.int((y - 0.001 - self.min_space) / (np.float(self.max_space - self.min_space)/np.float(self.num_spatial_cells)))
+    j = np.int64((y - 0.001 - self.min_space) / (np.float64(self.max_space - self.min_space)/np.float64(self.num_spatial_cells)))
     # print (j, y, self.min_space, self.max_space,self.num_spatial_cells)
     assert (j < self.num_spatial_cells)
-    k = np.int((unixtime - 0.001 - self.min_time) / (np.float(self.max_time - self.min_time)/ np.float(self.num_temporal_cells)))
+    k = np.int64((unixtime - 0.001 - self.min_time) / (np.float64(self.max_time - self.min_time)/ np.float64(self.num_temporal_cells)))
     assert (k < self.num_temporal_cells)
     return (i,j,k)
 
@@ -685,7 +685,7 @@ class mesh():
         for k in self.mesh_storage[i][j].keys():
           if len(self.mesh_storage[i][j][k][2]) and len(self.mesh_storage[i][j][k][3]) > 0:
             ave_k = (np.mean(np.array(self.mesh_storage[i][j][k][2])) 
-                      / (np.float(self.max_space - self.min_space)/ np.float(self.num_spatial_cells)))
+                      / (np.float64(self.max_space - self.min_space)/ np.float64(self.num_spatial_cells)))
             ave_v = np.mean(np.array(self.mesh_storage[i][j][k][3])) / 1000
             self.mesh_storage[i][j][k][4] = ave_k * ave_v#q, volue
             self.mesh_storage[i][j][k][5] = ave_k #k, density

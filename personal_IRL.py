@@ -150,7 +150,7 @@ for iteration in range(n_iters):
         
     # compute gradient
     grad = human_feature_exp - feature_exp - 2*lam*theta
-    grad = np.array(grad, dtype=np.float)
+    grad = np.array(grad, dtype=np.float64)
 
     # update weights
     if pm is None:
