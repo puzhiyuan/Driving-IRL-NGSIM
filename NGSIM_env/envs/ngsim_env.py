@@ -176,11 +176,16 @@ class NGSIMEnv(AbstractEnv):
         """
         if self.road is None or self.vehicle is None:
             raise NotImplementedError("The road and vehicle must be initialized in the environment implementation")
+        
+        if action is not None:
+            lateral, target_speed = self.sampling_space()
+            action = (lateral[action[0]], target_speed[action[1]], 5)
 
         features = self._simulate(action)
+        reward = self._reward(features)
         obs = self.observation.observe()
-        terminal = self._is_terminal()
-
+        terminated = self._is_terminal()
+        truncated = self._is_truncated()
         info = {
             "velocity": self.vehicle.velocity,
             "crashed": self.vehicle.crashed,
@@ -189,7 +194,132 @@ class NGSIMEnv(AbstractEnv):
             "time": self.time
         }
 
-        return obs, features, terminal, info
+        # observations,
+        # rewards,
+        # terminateds,
+        # truncateds,
+        # infos,
+
+        return obs, reward, terminated, truncated, info
+    
+    # def _reward(self, features):
+    #     speed = features[0]         # 速度
+    #     accel_long = features[1]    # 纵向加速度
+    #     accel_lat = features[2]     # 横向加速度
+    #     jerk_long = features[3]     # 纵向冲击
+    #     thw_front = features[4]     # 前车时距
+    #     thw_back = features[5]      # 后车时距
+    #     collision = features[6]     # 碰撞 (0: 无碰撞, 1: 发生碰撞)
+    #     social_impact = features[7] # 超车影响别的车减速
+    #     human_likeness = features[8] # 人类驾驶相似度
+
+    #     # 速度奖励 (希望接近 v_target)
+    #     v_target = 10.0  # 目标速度 (m/s)
+    #     speed_reward = -abs(speed - v_target) * 0.5  # 偏离目标速度的惩罚
+
+    #     # 纵向加速度惩罚 (减少急加速或急刹车)
+    #     accel_long_penalty = -abs(accel_long) * 0.2
+
+    #     # 横向加速度惩罚 (避免剧烈变道)
+    #     accel_lat_penalty = -abs(accel_lat) * 0.3
+
+    #     # 纵向冲击惩罚 (jerk 过大会影响舒适度)
+    #     jerk_long_penalty = -abs(jerk_long) * 0.1
+
+    #     # 车距奖励 (合理的前车时距)
+    #     if thw_front < 1.0:  # 过近，给予惩罚
+    #         thw_front_reward = -5.0
+    #     elif 1.5 <= thw_front <= 3.0:  # 理想范围，给予奖励
+    #         thw_front_reward = 2.0
+    #     else:
+    #         thw_front_reward = 0.0  # 正常情况，无奖励无惩罚
+
+    #     # 后车时距惩罚 (避免后车太近)
+    #     thw_back_penalty = -0.5 if thw_back < 1.0 else 0.0
+
+    #     # 碰撞惩罚 (若发生碰撞，直接给予大额负奖励)
+    #     collision_penalty = -100.0 if collision > 0 else 0.0
+
+    #     # 社会影响惩罚 (影响其他车辆越大，惩罚越大)
+    #     social_impact_penalty = -social_impact * 2.0
+
+    #     # 人类驾驶相似度奖励 (行为越接近人类驾驶，奖励越高)
+    #     human_likeness_reward = human_likeness * 5.0  # 最高 +5 奖励
+
+    #     # 计算最终奖励
+    #     total_reward = (
+    #         speed_reward + 
+    #         accel_long_penalty + 
+    #         accel_lat_penalty + 
+    #         jerk_long_penalty + 
+    #         thw_front_reward + 
+    #         thw_back_penalty + 
+    #         collision_penalty + 
+    #         social_impact_penalty + 
+    #         human_likeness_reward
+    #     )
+
+    #     return total_reward
+
+    def _reward(self, features):
+        speed = features[0]         # 速度
+        accel_long = features[1]    # 纵向加速度
+        accel_lat = features[2]     # 横向加速度
+        jerk_long = features[3]     # 纵向冲击
+        thw_front = features[4]     # 前车时距
+        thw_back = features[5]      # 后车时距
+        collision = features[6]     # 碰撞
+        social_impact = features[7] # 社会影响
+        human_likeness = features[8] # 人类驾驶相似度
+
+        v_target = 10.0  # 目标速度 (m/s)
+
+        # 速度奖励：二次函数，使其在 v_target 处最优
+        speed_reward = - (speed - v_target) ** 2 * 0.1
+
+        # 运动奖励：防止小车停滞
+        movement_bonus = 1.0 if speed > 0.1 else -10.0
+
+        # 调整加速度和冲击惩罚，避免过度惩罚
+        accel_long_penalty = -abs(accel_long) * 0.1
+        accel_lat_penalty = -abs(accel_lat) * 0.3
+        jerk_long_penalty = -abs(jerk_long) * 0.05
+
+        # 车距奖励
+        if thw_front < 1.0:
+            thw_front_reward = -5.0
+        elif 1.5 <= thw_front <= 3.0:
+            thw_front_reward = 2.0
+        else:
+            thw_front_reward = 0.0
+
+        thw_back_penalty = -0.5 if thw_back < 1.0 else 0.0
+
+        # 碰撞惩罚
+        collision_penalty = -100.0 if collision > 0 else 0.0
+
+        # 社会影响惩罚
+        social_impact_penalty = -social_impact * 2.0
+
+        # 人类驾驶奖励
+        human_likeness_reward = human_likeness * 5.0
+
+        # 总奖励计算
+        total_reward = (
+            speed_reward +
+            movement_bonus +
+            accel_long_penalty +
+            accel_lat_penalty +
+            jerk_long_penalty +
+            thw_front_reward +
+            thw_back_penalty +
+            collision_penalty +
+            social_impact_penalty +
+            human_likeness_reward
+        )
+
+        return total_reward
+
 
     def _simulate(self, action):
         """
@@ -289,6 +419,12 @@ class NGSIMEnv(AbstractEnv):
         """
         return self.vehicle.crashed or self.time >= self.duration or self.vehicle.position[0] >= 2150/3.281 or not self.vehicle.on_road
     
+    def _is_truncated(self):
+        """
+        The episode is truncated if the ego vehicle crashed or go off road.
+        """
+        return self.vehicle.velocity == 0 or self.vehicle.crashed or not self.vehicle.on_road
+
     def sampling_space(self):
         """
         The target sampling space (longitudinal speed and lateral offset)
@@ -302,3 +438,4 @@ class NGSIMEnv(AbstractEnv):
         target_speeds = np.linspace(min_speed, max_speed, 10)
 
         return lateral_offsets, target_speeds
+    

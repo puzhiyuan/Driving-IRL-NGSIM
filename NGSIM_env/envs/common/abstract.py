@@ -102,7 +102,8 @@ class AbstractEnv(gym.Env):
             self.config.update(config)
 
     def define_spaces(self):
-        self.action_space = spaces.Discrete(len(self.ACTIONS))
+        # self.action_space = spaces.Discrete(len(self.ACTIONS))
+        self.action_space = spaces.MultiDiscrete([3, 10])
 
         if "observation" not in self.config:
             raise ValueError("The observation configuration must be defined")
@@ -122,6 +123,13 @@ class AbstractEnv(gym.Env):
         """
         Check whether the current state is a terminal state
         :return:is the state terminal
+        """
+        raise NotImplementedError
+    
+    def _is_truncated(self):
+        """
+        Check whether the current state is a truncated state
+        :return:is the state truncated
         """
         raise NotImplementedError
 
@@ -163,7 +171,7 @@ class AbstractEnv(gym.Env):
         obs = self.observation.observe()
         reward = self._reward(action)
         terminal = self._is_terminal()
-
+        truncated = self._is_truncated()
         info = {
             "velocity": self.vehicle.velocity,
             "crashed": self.vehicle.crashed,
@@ -175,7 +183,7 @@ class AbstractEnv(gym.Env):
         except NotImplementedError:
             pass
 
-        return obs, reward, terminal, info
+        return obs, reward, terminal, truncated, info
 
     def _simulate(self, action=None):
         """

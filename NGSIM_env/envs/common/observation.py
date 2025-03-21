@@ -187,7 +187,7 @@ class KinematicObservation(ObservationType):
             self.env.np_random.shuffle(obs[1:])
         
         # Flatten
-        return obs
+        return obs.flatten()
 
 
 class OccupancyGridObservation(ObservationType):
